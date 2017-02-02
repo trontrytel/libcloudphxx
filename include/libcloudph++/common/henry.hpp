@@ -88,6 +88,28 @@ namespace libcloudphxx
         );
       }
 
+      // mean free path of trace gas molecules (eq. 8.19 from Seinfeld and Pandis)
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::length, real_t> gas_mean_path(
+        const quantity<diffusivity, real_t> &D,          // molecular diffusivity
+        const quantity<si::velocity, real_t> &molec_vel  // mean speeed
+      ) {
+        return real_t(2.) * D / molec_vel;
+      }
+
+      // Knudsen number for trace gases (gas mean path / drop radius)
+      // eq. 8.1 in Seinfeld and Pandis
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::dimensionless, real_t> gas_Kn(
+        const quantity<si::length, real_t> &gas_mean_path,
+        const quantity<si::area, real_t> &rw2
+      ) {
+        return gas_mean_path / (real_t(sqrt(rw2/si::square_meter)) * si::metres);
+      }                                   //bug in boost #6957
+
+
       //mass transfer coefficient
       //Peter Warneck - Chemistry of the Natural Atmosphere (chapter 8.4.2 eq. 8.23)
       template <typename real_t>
