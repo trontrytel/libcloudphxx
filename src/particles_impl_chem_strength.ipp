@@ -25,18 +25,12 @@ namespace libcloudphxx
           const quantity<si::volume, real_t>  V       = thrust::get<6>(tpl) * si::cubic_metres;
           const quantity<si::temperature, real_t> T   = thrust::get<7>(tpl) * si::kelvins;
           const quantity<si::area, real_t> rw2        = thrust::get<8>(tpl) * si::square_metres;
-          const quantity<common::amount_over_volume, real_t>
-            conc_S_IV  = thrust::get<0>(tpl) * si::kilograms / M_SO2_H2O<real_t>() / V;
-          const quantity<common::amount_over_volume, real_t>
-            conc_C_IV  = thrust::get<1>(tpl) * si::kilograms / M_CO2_H2O<real_t>() / V;
-          const quantity<common::amount_over_volume, real_t>
-            conc_N_V   = thrust::get<2>(tpl) * si::kilograms / M_HNO3<real_t>()    / V;
-          const quantity<common::amount_over_volume, real_t>
-            conc_N_III = thrust::get<3>(tpl) * si::kilograms / M_NH3_H2O<real_t>() / V;
-          const quantity<common::amount_over_volume, real_t>
-            conc_S_VI  = thrust::get<4>(tpl) * si::kilograms / M_H2SO4<real_t>()   / V;
-          const quantity<common::amount_over_volume, real_t>
-            conc_H     = thrust::get<5>(tpl) * si::kilograms / M_H<real_t>()       / V;
+          const quantity<common::amount_over_volume, real_t>  conc_S_IV  = thrust::get<0>(tpl) * si::moles / V;
+          const quantity<common::amount_over_volume, real_t>  conc_C_IV  = thrust::get<1>(tpl) * si::moles / V;
+          const quantity<common::amount_over_volume, real_t>  conc_N_V   = thrust::get<2>(tpl) * si::moles / V;
+          const quantity<common::amount_over_volume, real_t>  conc_N_III = thrust::get<3>(tpl) * si::moles / V;
+          const quantity<common::amount_over_volume, real_t>  conc_S_VI  = thrust::get<4>(tpl) * si::moles / V;
+          const quantity<common::amount_over_volume, real_t>  conc_H     = thrust::get<5>(tpl) * si::moles / V;
 
           //calculate temperature dependant dissociation constants - TODO - copied from dissoc!
           quantity<common::amount_over_volume, real_t> Kt_CO2  = K_temp(T, K_CO2<real_t>(),  dKR_CO2<real_t>());

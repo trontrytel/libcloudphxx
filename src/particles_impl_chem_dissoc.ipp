@@ -20,23 +20,23 @@ namespace libcloudphxx
         // returns the difference between the mass of H+ ions already present 
         // and the mass of H+ ions needed to be added (due to dissociation)
         // in order to maintain electroneutrality
-	const quantity<si::mass, real_t> m_S_IV, m_C_IV, m_N_III, m_N_V, m_S_VI;
+	const quantity<si::amount, real_t> n_S_IV, n_C_IV, n_N_III, n_N_V, n_S_VI;
 	const quantity<si::volume, real_t> V;
         const quantity<si::temperature, real_t> T; 
         
         // ctor
         BOOST_GPU_ENABLED
         chem_minfun(
-	  const quantity<si::mass, real_t> &m_S_IV,
-	  const quantity<si::mass, real_t> &m_C_IV,
-	  const quantity<si::mass, real_t> &m_N_V,
-	  const quantity<si::mass, real_t> &m_N_III,
-	  const quantity<si::mass, real_t> &m_S_VI,
+	  const quantity<si::amount, real_t> &n_S_IV,
+	  const quantity<si::amount, real_t> &n_C_IV,
+	  const quantity<si::amount, real_t> &n_N_V,
+	  const quantity<si::amount, real_t> &n_N_III,
+	  const quantity<si::amount, real_t> &n_S_VI,
 	  const quantity<si::volume, real_t> &V,
           const quantity<si::temperature, real_t> T
         ) :
-          m_S_IV(m_S_IV), m_C_IV(m_C_IV), m_N_V(m_N_V), m_N_III(m_N_III), 
-          m_S_VI(m_S_VI), V(V), T(T)
+          n_S_IV(n_S_IV), n_C_IV(n_C_IV), n_N_V(n_N_V), n_N_III(n_N_III), 
+          n_S_VI(n_S_VI), V(V), T(T)
         {}
 
         BOOST_GPU_ENABLED
@@ -56,45 +56,44 @@ namespace libcloudphxx
           Kt_HSO4 = K_temp(T, K_HSO4<real_t>(), dKR_HSO4<real_t>());
 
           //helper for concentration of H+ ions
-          const quantity<si::mass, real_t> m_H = arg * si::kilograms;
-          quantity<common::amount_over_volume, real_t> conc_H;
-          conc_H = m_H / M_H<real_t>() / V;
+          const quantity<si::amount, real_t> n_H = arg * si::moles;
+          quantity<common::amount_over_volume, real_t> conc_H = n_H / V;
 
-          return (-m_H + M_H<real_t>() * (
+          return (-n_H + (
             // dissociation of pure water 
-            K_H2O<real_t>() * M_H<real_t>() * (V*V) / m_H
+            K_H2O<real_t>() * (V*V) / n_H
             +
             // H2O*SO2 to HSO3 dissociation
-            m_S_IV / M_SO2_H2O<real_t>() * Kt_SO2 / conc_H 
+            n_S_IV * Kt_SO2 / conc_H 
               / (real_t(1) + Kt_SO2 / conc_H + Kt_SO2 * Kt_HSO3 / conc_H / conc_H)
             +
             // HSO3 to SO3 dissociation 
             real_t(2) * // "2-" ion 
-            m_S_IV / M_SO2_H2O<real_t>() * Kt_SO2 * Kt_HSO3 / conc_H / conc_H 
+            n_S_IV * Kt_SO2 * Kt_HSO3 / conc_H / conc_H 
               / (real_t(1) + Kt_SO2 / conc_H + Kt_SO2 * Kt_HSO3 / conc_H / conc_H)
             +
             // dissociation of S_VI to HSO4 (assumed there is no non-dissociated H2SO4)
-            conc_H * m_S_VI / M_H2SO4<real_t>() / (conc_H + Kt_HSO4)
+            conc_H * n_S_VI / (conc_H + Kt_HSO4)
             +
             // dissociation of HSO4 to SO4  (assumed there is no non-dissociated H2SO4)
             real_t(2) * // "2-" ion
-            Kt_HSO4 * m_S_VI / M_H2SO4<real_t>() / (conc_H + Kt_HSO4)
+            Kt_HSO4 * n_S_VI / (conc_H + Kt_HSO4)
             +
             // dissociation of CO2 * H2O to HCO3
-            m_C_IV / M_CO2_H2O<real_t>() * Kt_CO2 / conc_H 
+            n_C_IV * Kt_CO2 / conc_H 
               / (real_t(1) + Kt_CO2 / conc_H + Kt_CO2 * Kt_HCO3 / conc_H / conc_H)
             +
             // dissociation of HCO3 to CO3
             real_t(2) * //"2-" ion
-            m_C_IV / M_CO2_H2O<real_t>() * Kt_CO2 * Kt_HCO3 / conc_H / conc_H 
+            n_C_IV * Kt_CO2 * Kt_HCO3 / conc_H / conc_H 
               / (real_t(1) + Kt_CO2 / conc_H + Kt_CO2 * Kt_HCO3 / conc_H / conc_H)
             +
             // dissociation of HNO3 to NO3
-            m_N_V / M_HNO3<real_t>() * Kt_HNO3 / conc_H / (real_t(1.) + Kt_HNO3 / conc_H)
+            n_N_V * Kt_HNO3 / conc_H / (real_t(1.) + Kt_HNO3 / conc_H)
             - 
             // dissociation of NH3 * H2O to NH4
-            m_N_III / M_NH3_H2O<real_t>() * Kt_NH3 / K_H2O<real_t>() * conc_H / (real_t(1) + Kt_NH3 / K_H2O<real_t>() * conc_H)
-         )) / si::kilograms;
+            n_N_III * Kt_NH3 / K_H2O<real_t>() * conc_H / (real_t(1) + Kt_NH3 / K_H2O<real_t>() * conc_H)
+         )) / si::moles;
         } 
       };
 
@@ -107,36 +106,34 @@ namespace libcloudphxx
         {
           using namespace common::molar_mass;
 
-          const quantity<si::mass, real_t>
-            m_S_IV  = thrust::get<0>(tpl) * si::kilograms,
-            m_C_IV  = thrust::get<1>(tpl) * si::kilograms,
-            m_N_V   = thrust::get<2>(tpl) * si::kilograms,
-            m_N_III = thrust::get<3>(tpl) * si::kilograms,
-            m_S_VI  = thrust::get<4>(tpl) * si::kilograms;
+          const quantity<si::amount, real_t>
+            n_S_IV  = thrust::get<0>(tpl) * si::moles,
+            n_C_IV  = thrust::get<1>(tpl) * si::moles,
+            n_N_V   = thrust::get<2>(tpl) * si::moles,
+            n_N_III = thrust::get<3>(tpl) * si::moles,
+            n_S_VI  = thrust::get<4>(tpl) * si::moles;
           const quantity<si::volume, real_t>  V       = thrust::get<5>(tpl) * si::cubic_metres;
           const quantity<si::temperature, real_t> T   = thrust::get<6>(tpl) * si::kelvins;
           
           // limits for search in toms748
-          //                        1e1
-          real_t m_H_rht = ((real_t(1e1  * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
-          real_t m_H_lft = ((real_t(1e-8 * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
+          real_t n_H_rht = (real_t(1e1  * 1e3) / si::cubic_metres) * V;
+          real_t n_H_lft = (real_t(1e-8 * 1e3) / si::cubic_metres) * V;
 
           uintmax_t max_iter = 100;
 
-          real_t m_H = common::detail::toms748_solve(
-	    detail::chem_minfun<real_t>(m_S_IV, m_C_IV, m_N_V, m_N_III, m_S_VI, V, T),
-            m_H_lft,
-	    m_H_rht,
+          real_t n_H = common::detail::toms748_solve(
+	    detail::chem_minfun<real_t>(n_S_IV, n_C_IV, n_N_V, n_N_III, n_S_VI, V, T),
+            n_H_lft,
+	    n_H_rht,
             common::detail::eps_tolerance<float>(sizeof(float) * 8), //TODO is it big enough?
             max_iter
 	  ); 
 /*
-          real_t ph_helper = real_t(-1.) * log10(m_H / (M_H<real_t>() / si::kilograms * si::moles) 
-                             / (V / si::cubic_metres) / real_t(1000.));
-          std::cerr << "  " << m_H_lft << " ... " << m_H << " ... " << m_H_rht << " -> pH  = "<< ph_helper<< std::endl;
+          real_t ph_helper = real_t(-1.) * log10(n_H / (V / si::cubic_metres) / real_t(1000.));
+          std::cerr << "  " << n_H_lft << " ... " << n_H << " ... " << n_H_rht << " -> pH  = "<< ph_helper<< std::endl;
           // TODO: asserts for K = f(m_H, m_...)
 */
-          return m_H;
+          return n_H;
         }
       };
     };

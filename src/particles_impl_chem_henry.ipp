@@ -16,7 +16,7 @@ namespace libcloudphxx
     {
       template <typename real_t>
       struct chem_summator
-      { // calculate the mass of chem compounds (multiplicity * mass)  
+      { // calculate the total number of moles of chem compounds (multiplicity * moles)  
         template <typename tup_t>
         BOOST_GPU_ENABLED
         real_t operator()(const tup_t &tpl) const
@@ -41,15 +41,15 @@ namespace libcloudphxx
 
         BOOST_GPU_ENABLED
         real_t operator()(
-          const real_t &m_new, 
+          const real_t &n_new, 
           const thrust::tuple<real_t, real_t, real_t, real_t> &tpl) const
         {
-          const quantity<si::mass, real_t>          m_old  = thrust::get<0>(tpl) * si::kilograms;     
+          const quantity<si::amount, real_t>        n_old  = thrust::get<0>(tpl) * si::moles;     
           const quantity<si::mass_density, real_t>  rhod   = thrust::get<1>(tpl) * si::kilograms / si::cubic_metres; 
           const quantity<si::volume, real_t>        dv     = thrust::get<2>(tpl) * si::cubic_metres;
           const quantity<si::dimensionless, real_t> c      = thrust::get<3>(tpl); 
 
-          quantity<si::dimensionless, real_t> new_c  = c - (m_new * si::kilograms - m_old) / M_aq * M_gas / dv / rhod;
+          quantity<si::dimensionless, real_t> new_c  = c - (n_new * si::moles - n_old) * (M_gas * si::kilograms / si::moles) / dv / rhod;
 
           // As of now the aq. chemistry module computes Henrys law from the point of view of each super droplet.
           // It never checks if the sum of decrements of the ambient air trace gas concentarions
@@ -96,10 +96,10 @@ namespace libcloudphxx
           const quantity<si::pressure, real_t>      p      = thrust::get<0>(tpl) * si::pascals; 
           const quantity<si::temperature, real_t>   T      = thrust::get<1>(tpl) * si::kelvins;     
           const quantity<si::dimensionless, real_t> c      = thrust::get<2>(tpl);     
-          const quantity<si::mass, real_t>          m_old  = thrust::get<3>(tpl) * si::kilograms;     
+          const quantity<si::amount, real_t>        n_old  = thrust::get<3>(tpl) * si::moles;     
           const quantity<si::area, real_t>          rw2    = thrust::get<4>(tpl) * si::metres * si::metres; 
           const quantity<si::mass_density, real_t>  rhod   = thrust::get<5>(tpl) * si::kilograms / si::cubic_metres; 
-          const quantity<si::mass, real_t>          m_H    = thrust::get<6>(tpl) * si::kilograms;     
+          const quantity<si::amount, real_t>        n_H    = thrust::get<6>(tpl) * si::moles;     
 
           using namespace common::henry;      // H-prefixed
           using namespace common::molar_mass; // M-prefixed
@@ -110,7 +110,7 @@ namespace libcloudphxx
 
           // helper for H+ concentration
           quantity<common::amount_over_volume, real_t> conc_H;
-          conc_H = m_H / M_H<real_t>() / (V * si::cubic_metres);
+          conc_H = n_H / (V * si::cubic_metres);
 
           // helper for Henry coefficient corrected for temperature and pH
           typedef divide_typeof_helper<
@@ -217,40 +217,16 @@ namespace libcloudphxx
           // and another helper (Henry * gas constant * Temperature)
           quantity<si::dimensionless, real_t> HRT = Henry * common::moist_air::kaBoNA<real_t>() * T;
 
-          // helper for gass mass
-          quantity<si::mass, real_t> gass_mass = c * rhod * V * si::cubic_metres * (M_aq / M_gas) * HRT;
+          // helper for gass moles
+          quantity<si::amount, real_t> gass_moles = c * rhod * V * si::cubic_metres / (M_gas * si::kilograms / si::moles) * HRT;
 
-          // Solution to Eq. 1 from Sensitivity Analysis of a Chemical Mechanism 
-          // for Aqueous-Phase Atmospheric Chemistry by Pandis and Seinfeld 1989
+          // Solution to Eq. 1 from Sensitivity Analysis of a Chemical Mechanism for Aqueous-Phase Atmospheric Chemistry 
+          // by Pandis and Seinfeld 1989
           // see also Eq. 19 - 20 from Alfonso and Raga 2002 
           // Estimating the impact of natural and anthropogenic emissions on cloud chemistry Part I
-          real_t mass_helper =  (gass_mass + (m_old  - gass_mass) * exp(real_t(-1) * dt * si::seconds * k_Henry / HRT) ) / si::kilograms;
+          real_t moles_helper = (gass_moles + (n_old  - gass_moles) * exp(real_t(-1) * dt * si::seconds * k_Henry / HRT)) / si::moles;
 
-          /*
-          // implicit solution to the eq. 8.22 from chapter 8.4.2 
-          // in Peter Warneck Chemistry of the Natural Atmosphere  
-          real_t mass_helper =     
-          (
-            ( m_old 
-                + 
-                (dt * si::seconds) * (V * si::cubic_metres) 
-                * common::henry::mass_trans(
-                                              rw2, 
-                                              (D * si::metres * si::metres / si::seconds), 
-                                              (acc_coeff * si::seconds/si::seconds), 
-                                              T, 
-                                              (M_gas * si::kilograms / si::moles)
-                                            ) 
-                * c * rhod * (M_aq / M_gas)
-              )
-              /
-              (real_t(1.) + (dt * si::seconds) 
-                 * common::henry::mass_trans(rw2, (D * si::metres * si::metres / si::seconds), 
-                                            acc_coeff * si::seconds / si::seconds, T, (M_gas * si::kilograms / si::moles)) 
-                 / Henry / common::moist_air::kaBoNA<real_t>() / T)
-          ) / si::kilograms ; */
-
-          return mass_helper;// > 0 ? mass_helper : 0;
+          return moles_helper;// > 0 ? moles_helper : 0;
         }
       };
     };
@@ -344,13 +320,13 @@ namespace libcloudphxx
       //closed chemical system - reduce mixing ratio due to Henrys law
       hskpng_sort();
 
-      // temporarily needed to store old mass per cell 
-      thrust_device::vector<real_t> &mass_old(tmp_device_real_cell);
-      thrust_device::vector<real_t> &mass_new(tmp_device_real_cell1);
+      // temporarily needed to store old number of moles per cell 
+      thrust_device::vector<real_t> &n_old(tmp_device_real_cell);
+      thrust_device::vector<real_t> &n_new(tmp_device_real_cell1);
 
       for (int i = 0; i < chem_gas_n; ++i)
       {
-        // store the total mass of chem species in cloud droplets per cell
+        // store the total number of moles of chem species in cloud droplets per cell
         thrust::reduce_by_key(
           sorted_ijk.begin(), sorted_ijk.end(),
           thrust::transform_iterator<             
@@ -365,7 +341,7 @@ namespace libcloudphxx
             detail::chem_summator<real_t>() 
           ),
           count_ijk.begin(),
-          mass_old.begin()
+          n_old.begin()
         );
 
         // apply Henrys law to the in-drop chemical compounds 
@@ -386,7 +362,7 @@ namespace libcloudphxx
           thrust::identity<unsigned int>()
         );
 
-        // store the total mass of chem species in cloud droplets per cell after Henry
+        // store the total moles of chem species in cloud droplets per cell after Henry
         thrust::pair<
           typename thrust_device::vector<thrust_size_t>::iterator,
           typename thrust_device::vector<real_t>::iterator
@@ -405,16 +381,16 @@ namespace libcloudphxx
             detail::chem_summator<real_t>()      // op
           ),
           count_ijk.begin(),
-          mass_new.begin()
+          n_new.begin()
         );
         count_n = np.first - count_ijk.begin();
         assert(count_n > 0 && count_n <= n_cell);
 
         // apply the change to the mixing ratios of trace gases
         thrust::transform(
-          mass_new.begin(), mass_new.begin() + count_n,                              // input - 1st arg
+          n_new.begin(), n_new.begin() + count_n,                              // input - 1st arg
           thrust::make_zip_iterator(thrust::make_tuple(                              // input - 2nd arg
-            mass_old.begin(),
+            n_old.begin(),
             thrust::make_permutation_iterator(rhod.begin(), count_ijk.begin()), 
             thrust::make_permutation_iterator(dv.begin(), count_ijk.begin()),
             thrust::make_permutation_iterator(ambient_chem[(chem_species_t)i].begin(), count_ijk.begin())

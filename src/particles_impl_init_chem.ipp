@@ -13,24 +13,6 @@ namespace libcloudphxx
   {
     namespace detail
     {
-/*
-    template <typename real_t>
-      struct chem_init_water // water
-      {
-        const real_t mltpl;
-
-        // ctor
-        chem_init_water(const real_t &pH, const quantity<common::mass_over_amount, real_t> &M) : 
-          mltpl(pow(10,-pH) * real_t(4./3) * (M / si::kilograms * si::moles) * pi<real_t>() / 1e-3)
-        {}                                                                                  // litres -> m3
- 
-        BOOST_GPU_ENABLED
-        real_t operator()(const real_t &rw2)
-        {
-          return mltpl * pow(rw2, real_t(3./2));
-        }
-      };
-*/
       template <typename real_t>
       struct chem_init_NH4
       {
@@ -54,34 +36,10 @@ namespace libcloudphxx
             CUDART_PI
 #endif
             * chem_rho * rd3
-            * (M_NH3_H2O<real_t>() / (M_NH4<real_t>() + M_HSO4<real_t>()));
+            / ((M_NH4<real_t>() + M_HSO4<real_t>()) * si::moles / si::kilograms);
 	}
       };
-/*
-      template <typename real_t>
-      struct chem_init_SO4
-      {
-        const real_t chem_rho;
 
-        chem_init_SO4(const real_t &chem_rho) : chem_rho(chem_rho) {}
-
-	BOOST_GPU_ENABLED
-	real_t operator()(const real_t &rd3) const 
-        { 
-          using namespace common::molar_mass;
- 
-          return 
-            real_t(4./3) * 
-#if !defined(__NVCC__)
-            pi<real_t>()
-#else
-            CUDART_PI
-#endif
-            * chem_rho * rd3
-            * (M_SO4<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>()));
-	}
-      };
-*/
       template <typename real_t>
       struct chem_init_S6
       {//TODO - done temporarily to pass the info on the initial condition of SO4 ions to dissociation
@@ -103,7 +61,7 @@ namespace libcloudphxx
             CUDART_PI
 #endif
             * chem_rho * rd3
-            * (M_H2SO4<real_t>() / (M_NH4<real_t>() + M_HSO4<real_t>()));
+            / ((M_NH4<real_t>() + M_HSO4<real_t>())* si::moles / si::kilograms);
 	}
       };
 
@@ -127,7 +85,7 @@ namespace libcloudphxx
             CUDART_PI
 #endif
             * chem_rho * rd3
-            * (M_H<real_t>() / (M_NH4<real_t>() + M_HSO4<real_t>()));
+            / ((M_NH4<real_t>() + M_HSO4<real_t>()) * si::moles / si::kilograms);
 	}
       };
     };

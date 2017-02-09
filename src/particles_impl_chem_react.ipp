@@ -34,21 +34,16 @@ namespace libcloudphxx
         {
           const quantity<si::volume, real_t>      V = V_ * si::cubic_metres; 
           const quantity<si::temperature, real_t> T = thrust::get<0>(tpl) * si::kelvins;
-
-          const quantity<si::mass, real_t>
-            m_S_IV = thrust::get<1>(tpl) * si::kilograms,
-            m_S_VI = thrust::get<2>(tpl) * si::kilograms,
-            m_H2O2 = thrust::get<3>(tpl) * si::kilograms,
-            m_O3   = thrust::get<4>(tpl) * si::kilograms,
-            m_H    = thrust::get<5>(tpl) * si::kilograms;
+          // concentrations
+          quantity<common::amount_over_volume, real_t> conc_S_IV = thrust::get<1>(tpl) * si::moles / V;
+          quantity<common::amount_over_volume, real_t> conc_S_VI = thrust::get<2>(tpl) * si::moles / V;
+          quantity<common::amount_over_volume, real_t> conc_H2O2 = thrust::get<3>(tpl) * si::moles / V;
+          quantity<common::amount_over_volume, real_t> conc_O3   = thrust::get<4>(tpl) * si::moles / V;
+          quantity<common::amount_over_volume, real_t> conc_H    = thrust::get<5>(tpl) * si::moles / V;
 
           using namespace common::molar_mass;
           using namespace common::dissoc;
           using namespace common::react;
-
-          // helper for H+ concentration
-          quantity<common::amount_over_volume, real_t> conc_H;
-          conc_H = m_H / M_H<real_t>() / V;
 
           //helpers for dissociation (temperature dependance)
           quantity<common::amount_over_volume, real_t> Kt_SO2, Kt_HSO3;
@@ -65,50 +60,37 @@ namespace libcloudphxx
 
           // helper for O3 reaction
           quantity<divide_typeof_helper<si::amount, si::time>::type, real_t> 
-            O3_react = V * m_O3 / M_O3<real_t>() / V * m_S_IV / M_SO2_H2O<real_t>() / V
+            O3_react = V * conc_O3 * conc_S_IV 
                        / (real_t(1) + Kt_SO2 / conc_H + Kt_SO2 * Kt_HSO3 / conc_H / conc_H)
                        * (R_O3_k0 + R_O3_k1 * Kt_SO2 / conc_H + R_O3_k2 * Kt_SO2 * Kt_HSO3 / conc_H / conc_H);
             
             // check if reaction rate won't take more O3 than there is
-            O3_react = (O3_react * dt * si::seconds < m_O3 / M_O3<real_t>()) ? O3_react : 
-                         m_O3 / M_O3<real_t>() / (dt * si::seconds);
+            O3_react = (O3_react * dt * si::seconds < conc_O3 * V) ? O3_react : conc_O3 * V / (dt * si::seconds);
             // check if reaction rate won't take more S_IV than there is
-            O3_react = (O3_react * dt * si::seconds < m_S_IV / M_SO2_H2O<real_t>()) ? O3_react : 
-                         m_S_IV / M_SO2_H2O<real_t>() / (dt * si::seconds);
+            O3_react = (O3_react * dt * si::seconds < conc_S_IV * V) ? O3_react : conc_S_IV * V / (dt * si::seconds);
  
 	  // helper for H2O2 reaction
 	  quantity<divide_typeof_helper<si::amount, si::time>::type, real_t>
-            H2O2_react = V * R_H2O2_k * Kt_SO2 
-                         * m_H2O2 / M_H2O2<real_t>() / V
-                         * m_S_IV / M_SO2_H2O<real_t>() / V
+            H2O2_react = V * R_H2O2_k * Kt_SO2 * conc_H2O2 * conc_S_IV 
                          / (real_t(1) + Kt_SO2 / conc_H + Kt_SO2 * Kt_HSO3 / conc_H / conc_H)
                          / (real_t(1) + R_S_H2O2_K<real_t>() * conc_H);
 
             // check if reaction rate won't take more H2O2 than there is
-            H2O2_react = (H2O2_react * dt * si::seconds < m_H2O2 / M_H2O2<real_t>()) ? H2O2_react : 
-                           m_H2O2 / M_H2O2<real_t>() / (dt * si::seconds);
+            H2O2_react = (H2O2_react * dt * si::seconds < conc_H2O2  * V) ? H2O2_react : conc_H2O2 * V / (dt * si::seconds);
             // check if reaction rate won't take more S_IV than there is (this silently gives precedence to O3 reaction)
-            H2O2_react = (H2O2_react * dt * si::seconds < m_S_IV / M_SO2_H2O<real_t>() - O3_react * dt * si::seconds) ? 
-                          H2O2_react : m_S_IV / M_SO2_H2O<real_t>() / (dt * si::seconds) - O3_react;
+            H2O2_react = (H2O2_react * dt * si::seconds < conc_S_IV * V - O3_react * dt * si::seconds) ? 
+                          H2O2_react : conc_S_IV * V / (dt * si::seconds) - O3_react;
 
           switch (chem_iter)
           {
             case SO2:
-              return -(
-                M_SO2_H2O<real_t>() * (O3_react + H2O2_react)
-              ) / si::kilograms * si::seconds;
+              return - (O3_react + H2O2_react) / si::moles * si::seconds;
             case S_VI:
-              return (
-                M_H2SO4<real_t>() * (O3_react + H2O2_react)
-              ) / si::kilograms * si::seconds;
+              return   (O3_react + H2O2_react) / si::moles * si::seconds;
             case H2O2:
-              return -(
-                M_H2O2<real_t>() * H2O2_react
-              ) / si::kilograms * si::seconds;
+              return - (H2O2_react) / si::moles * si::seconds;
             case O3:
-              return -(
-                M_O3<real_t>() * O3_react
-              ) / si::kilograms * si::seconds;
+              return - (O3_react) / si::moles * si::seconds;
             default:
               assert(false);
               return 0;
@@ -231,25 +213,23 @@ namespace libcloudphxx
 
         BOOST_GPU_ENABLED
         real_t operator()(
-          const thrust::tuple<real_t, real_t, real_t> &tpl
+          const thrust::tuple<real_t, real_t> &tpl
         ) 
         { 
           //const quantity<si::mass, real_t>
           const real_t 
-            m_S6_old  = thrust::get<0>(tpl),// * si::kilograms,     // old H2SO4
-            m_S6_new  = thrust::get<1>(tpl);// * si::kilograms;     // new H2SO4
-          //const quantity<si::volume, real_t>
-          const real_t  
-            rd3       = thrust::get<2>(tpl);// * si::cubic_metres;  // old dry radii^3
+            n_S6_new  = thrust::get<0>(tpl),     // * si::moles
+            rd3       = thrust::get<1>(tpl);     // * si::cubic_metres
 
           return 
-            rd3 + (real_t(3./4) /
+            n_S6_new  * (common::molar_mass::M_H2SO4<real_t>() / si::kilograms * si::moles)
+            / real_t(4./3) /
 #if !defined(__NVCC__)
             pi<real_t>()
 #else
             CUDART_PI
 #endif
-            / chem_rho) * (m_S6_new - m_S6_old);
+            / chem_rho;
         }
       };
     };
@@ -264,14 +244,6 @@ namespace libcloudphxx
 
       //non-equilibrium chemical reactions (oxidation)
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
-
-      thrust_device::vector<real_t> &old_S_VI(tmp_device_real_part1);
-
-      // copy old H2SO4 values to allow dry radii recalculation
-      thrust::copy(
-        chem_bgn[S_VI], chem_end[S_VI], // from
-        old_S_VI.begin()                // to
-      );
 
       // do chemical reactions
       chem_stepper.do_step(
@@ -293,15 +265,14 @@ namespace libcloudphxx
       // TODO: using namespace for S_VI
       typedef thrust::zip_iterator<
         thrust::tuple<
-          typename thrust_device::vector<real_t>::iterator, // old S_VI 
           typename thrust_device::vector<real_t>::iterator, // new_S_VI
           typename thrust_device::vector<real_t>::iterator  // rd3
         >
       > zip_it_t;
 
       zip_it_t 
-        arg_begin(thrust::make_tuple(old_S_VI.begin(), chem_bgn[S_VI], rd3.begin())),
-        arg_end(  thrust::make_tuple(old_S_VI.end(),   chem_end[S_VI], rd3.end()));
+        arg_begin(thrust::make_tuple(chem_bgn[S_VI], rd3.begin())),
+        arg_end(  thrust::make_tuple(chem_end[S_VI], rd3.end()));
  
       // do oxidation reaction only for droplets that are "big enough" (marked by chem_flag) 
       thrust::transform_if(
