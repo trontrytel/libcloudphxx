@@ -117,6 +117,7 @@ namespace libcloudphxx
           const quantity<si::temperature, real_t> T   = thrust::get<6>(tpl) * si::kelvins;
           
           // limits for search in toms748
+          //                        1e1
           real_t m_H_rht = ((real_t(1e1  * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
           real_t m_H_lft = ((real_t(1e-8 * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
 
