@@ -10,8 +10,7 @@ sys.path.insert(0, "../../../../../build/bindings/python/")
 from libcloudphxx import common as cm
 
 #for case in ['case_base', 'case_base_rk', 'case3', 'case4', 'case5', 'case5_fix']:
-#for case in ['case5', 'case5_new_Henry', 'case5_no_coll']:
-for case in ['case4', 'case5', 'case6']:
+for case in ['case5', 'case5_new_Henry', 'case5_no_coll', 'case5_no_O3H2O2']:
 
 
     # open hdf5 files with data
@@ -86,18 +85,19 @@ for case in ['case4', 'case5', 'case6']:
     gained_S6     = help_dict['H2SO4'][5] - help_dict['H2SO4'][3] 
     
     relative_error_1 = (depleted_O3 + depleted_H2O2 - gained_S6) / gained_S6 
+    
     relative_error_2 = (depleted_SO2 - gained_S6) / gained_S6 
     
     print " "
-    print "created H2SO4 relative error_1 ", relative_error_1 * 100, " %"
-    print "depleted = ", depleted_O3 + depleted_H2O2
-    print "gained   = ", gained_S6
+    print "depleted O3+H2O2 = ", depleted_O3 + depleted_H2O2
+    print "depleted SO2     = ", depleted_SO2
+    print "gained   H2SO4   = ", gained_S6
     print " "
-    print "created H2SO4 relative error_2 ", relative_error_2 * 100, " %"
-    print "depleted = ", depleted_SO2
-    print "gained   = ", gained_S6
+    print "relative error_1 ", relative_error_1 * 100, " %"
+    print "relative error_2 ", relative_error_2 * 100, " %"
+    print "absolute error_1 ", depleted_O3 + depleted_H2O2 - gained_S6
+    print "absolute error_2 ", depleted_SO2 - gained_S6
     print " "
     print "ini S6   = ",  help_dict['H2SO4'][3]
-    #print "spn S6   = ",  help_dict['H2SO4'][4]
     print "end S6  = ",   help_dict['H2SO4'][5]
 
