@@ -218,13 +218,22 @@ namespace libcloudphxx
           quantity<si::dimensionless, real_t> HRT = Henry * common::moist_air::kaBoNA<real_t>() * T;
 
           // helper for gass mass
-          quantity<si::mass, real_t> gass_mass = c * rhod * V * si::cubic_metres * (M_aq / M_gas) * HRT;
+          quantity<si::mass, real_t> gass_mass_HRT = c * rhod * V * si::cubic_metres * (M_aq / M_gas) * HRT;
+
+          // helper for gass mass
+          quantity<si::mass, real_t> gass_mass = c * rhod * V * si::cubic_metres;
 
           // Solution to Eq. 1 from Sensitivity Analysis of a Chemical Mechanism 
           // for Aqueous-Phase Atmospheric Chemistry by Pandis and Seinfeld 1989
           // see also Eq. 19 - 20 from Alfonso and Raga 2002 
           // Estimating the impact of natural and anthropogenic emissions on cloud chemistry Part I
-          real_t mass_helper =  (gass_mass + (m_old  - gass_mass) * exp(real_t(-1) * dt * si::seconds * k_Henry / HRT) ) / si::kilograms;
+          //real_t mass_helper =  (gass_mass_HRT + (m_old  - gass_mass_HRT) * exp(real_t(-1) * dt * si::seconds * k_Henry / HRT) ) / si::kilograms;
+
+
+          // implicit in aqueous phase and explicit in gas phase solution
+          real_t mass_helper = (m_old + dt * si::seconds * k_Henry * M_aq / M_gas * gass_mass) 
+                               / 
+                               (real_t(1.) + dt * si::seconds * k_Henry / HRT) / si::kilograms;
 
           /*
           // implicit solution to the eq. 8.22 from chapter 8.4.2 
