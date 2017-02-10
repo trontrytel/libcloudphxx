@@ -124,14 +124,14 @@ int main(int ac, char** av)
 
       else if (plt == "S_IV_aq")
       {
-        auto chem = h5load(h5, "chem_S_IV_aq", at * n["outfreq"]) / (M_SO2_H2O<float>() * si::moles / si::kilograms) * 1e9;
+        auto chem = h5load(h5, "chem_S_IV_aq", at * n["outfreq"]) * 1e9;
         gp << "set title 'dissolved S^{IV} conc. [mol/μg of dry air]'\n";
         //gp << "set cbrange [0:1e-5]\n";
         plot(gp, chem);
       }
       else if (plt == "S_VI_aq")
       {
-        auto chem = h5load(h5, "chem_S_VI_aq", at * n["outfreq"]) / (M_H2SO4<float>() * si::moles / si::kilograms) * 1e9;
+        auto chem = h5load(h5, "chem_S_VI_aq", at * n["outfreq"]) * 1e9;
         gp << "set title 'S^{VI} conc. [mol/μg of dry air]'\n";
         gp << "set cbrange [0 : 12]\n";
         plot(gp, chem);
@@ -139,14 +139,14 @@ int main(int ac, char** av)
 
       else if (plt == "O3_aq")
       {
-        auto chem = h5load(h5, "chem_O3_aq", at * n["outfreq"]) / (M_O3<float>() * si::moles / si::kilograms) * 1e9;
+        auto chem = h5load(h5, "chem_O3_aq", at * n["outfreq"]) * 1e9;
         gp << "set title 'dissolved O_{3} conc. [mol/μg of dry air]'\n";
         gp << "set cbrange [0 : 0.0006]\n";
         plot(gp, chem);
       }
        else if (plt == "H2O2_aq")
       {
-        auto chem = h5load(h5, "chem_H2O2_aq", at * n["outfreq"]) / (M_H2O2<float>() * si::moles / si::kilograms) * 1e9;
+        auto chem = h5load(h5, "chem_H2O2_aq", at * n["outfreq"]) * 1e9;
         gp << "set title 'dissolved H_{2}O_{2} conc. [mol/μg of dry air]'\n";
         gp << "set cbrange [0 : 25]\n";
         plot(gp, chem);
@@ -154,7 +154,7 @@ int main(int ac, char** av)
 
       else if (plt == "H_aq")
       {
-        auto chem = h5load(h5, "chem_H_aq", at * n["outfreq"]) / (M_H<float>() * si::moles / si::kilograms) * 1e9;
+        auto chem = h5load(h5, "chem_H_aq", at * n["outfreq"]) * 1e9;
         gp << "set title 'H^{+} [mol/μg of dry air]'\n";
         //gp << "set cbrange [0:0.025]\n";
         plot(gp, chem);
@@ -162,7 +162,7 @@ int main(int ac, char** av)
 
        else if (plt == "C_IV_aq")
       {
-        auto chem = h5load(h5, "chem_C_IV_aq", at * n["outfreq"]) / (M_CO2_H2O<float>() * si::moles / si::kilograms) * 1e6;
+        auto chem = h5load(h5, "chem_C_IV_aq", at * n["outfreq"]) * 1e6;
         gp << "set title 'dissolved C^{IV} conc. [mol/mg of dry air]'\n";
         //gp << "set cbrange [0:1.6]\n";
         plot(gp, chem);
@@ -170,7 +170,7 @@ int main(int ac, char** av)
 
        else if (plt == "N_III_aq")
       {
-        auto chem = h5load(h5, "chem_N_III_aq", at * n["outfreq"]) / (M_NH3_H2O<float>() * si::moles / si::kilograms) * 1e9;
+        auto chem = h5load(h5, "chem_N_III_aq", at * n["outfreq"]) * 1e9;
         gp << "set title 'dissolved N^{-III} conc. [mol/μg of dry air]'\n";
         //gp << "set cbrange [0:0.45]\n";
         plot(gp, chem);
@@ -178,7 +178,7 @@ int main(int ac, char** av)
 
        else if (plt == "N_V_aq")
       {
-        auto chem = h5load(h5, "chem_N_V_aq", at * n["outfreq"]) / (M_HNO3<float>() * si::moles / si::kilograms) * 1e9;
+        auto chem = h5load(h5, "chem_N_V_aq", at * n["outfreq"]) * 1e9;
         gp << "set title 'dissolved N^{V} conc. [mol/μg of dry air]'\n";
         //gp << "set cbrange [0:0.6]\n";
         plot(gp, chem);

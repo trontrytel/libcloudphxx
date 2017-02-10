@@ -27,8 +27,8 @@ num_dry   = dry_edges.size - 1
 num_wet   = wet_edges.size - 1
 
 # loop for case with and without aqueous chemistry
-for case in ('case_base', 'case1', 'case3', 'case4', 'case5', 'case6'):
-
+#for case in ('case_base', 'case1', 'case3', 'case4', 'case5', 'case6'):
+for case in ["case5_moles"]:
     for kernel in kernels:
     
         # helper arrays for storing initial and cutoff dry radii as well as final and cutoff wet radii
@@ -103,7 +103,7 @@ for case in ('case_base', 'case1', 'case3', 'case4', 'case5', 'case6'):
         ymax = 1000
         xmin = 0.001
         xmax = 5
-    
+
         g = gp.Gnuplot()
         g('reset')
         g('set term svg dynamic enhanced font "Verdana, 14"')
@@ -146,7 +146,7 @@ for case in ('case_base', 'case1', 'case3', 'case4', 'case5', 'case6'):
         g('set yrange [' +  str(ymin) + ':' + str(ymax) + ']')
         g('set grid')
         g('set nokey')
-    
+   
         #plot_rw_all  = gp.PlotItems.Data(wet_edges[:-1] * 1e6 , n_wet_all,  with_="steps lw 4 lc rgb 'purple'")
         #plot_rw_dry  = gp.PlotItems.Data(wet_edges[:-1] * 1e6 , n_wet_dry,  with_="steps lw 4 lc rgb 'brown'")
         plot_rw_cld  = gp.PlotItems.Data(wet_edges[:-1] * 1e6 , n_wet_cld,  with_="steps lw 4 lc rgb 'magenta'")

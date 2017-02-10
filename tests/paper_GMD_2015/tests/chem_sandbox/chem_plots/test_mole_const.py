@@ -11,7 +11,7 @@ from libcloudphxx import common as cm
 
 #for case in ['case_base', 'case_base_rk', 'case3', 'case4', 'case5', 'case5_fix']:
 #for case in ['case5', 'case5_new_Henry', 'case5_no_coll']:
-for case in ['case5_']:
+for case in ['case5_moles_no_react', 'case5_moles']:
 
 
     # open hdf5 files with data
@@ -42,17 +42,17 @@ for case in ['case5_']:
             name2 = 'chem_S_VI_aq'
     
             # moles/ug of dry air
-            ini = (h5f_ini[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
+            ini = (h5f_ini[name2][:]).sum() / 76. / 76. * 1e9 
             #spn = (h5f_spn[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
-            end = (h5f_end[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
+            end = (h5f_end[name2][:]).sum() / 76. / 76. * 1e9 
     
         else:
             name2 = "chem_" + val[2] + "_aq"
     
             # moles/ug of dry air
-            ini = (h5f_ini[name1][:] / val[0] + h5f_ini[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
-            #spn = (h5f_spn[name1][:] / val[0] + h5f_spn[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
-            end = (h5f_end[name1][:] / val[0] + h5f_end[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
+            ini = (h5f_ini[name1][:] / val[0] + h5f_ini[name2][:]).sum() / 76. / 76. * 1e9 
+            #spn = (h5f_spn[name1][:] / val[0] + h5f_spn[name2][:]).sum() / 76. / 76. * 1e9 
+            end = (h5f_end[name1][:] / val[0] + h5f_end[name2][:]).sum() / 76. / 76. * 1e9 
     
         val[3] = ini
         #val[4] = spn
