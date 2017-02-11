@@ -218,37 +218,14 @@ namespace libcloudphxx
           quantity<si::dimensionless, real_t> HRT = Henry * common::moist_air::kaBoNA<real_t>() * T;
 
           // helper for gass mass
-          quantity<si::mass, real_t> gass_mass = c * rhod * V * si::cubic_metres * (M_aq / M_gas) * HRT;
+          quantity<si::mass, real_t> gass_mass_HRT = c * rhod * V * si::cubic_metres * (M_aq / M_gas) * HRT;
 
           // Solution to Eq. 1 from Sensitivity Analysis of a Chemical Mechanism 
           // for Aqueous-Phase Atmospheric Chemistry by Pandis and Seinfeld 1989
-          // see also Eq. 19 - 20 from Alfonso and Raga 2002 
+          // ("semi analytic" solution) -  see also Eq. 19 - 20 from Alfonso and Raga 2002 
           // Estimating the impact of natural and anthropogenic emissions on cloud chemistry Part I
-          real_t mass_helper =  (gass_mass + (m_old  - gass_mass) * exp(real_t(-1) * dt * si::seconds * k_Henry / HRT) ) / si::kilograms;
-
-          /*
-          // implicit solution to the eq. 8.22 from chapter 8.4.2 
-          // in Peter Warneck Chemistry of the Natural Atmosphere  
-          real_t mass_helper =     
-          (
-            ( m_old 
-                + 
-                (dt * si::seconds) * (V * si::cubic_metres) 
-                * common::henry::mass_trans(
-                                              rw2, 
-                                              (D * si::metres * si::metres / si::seconds), 
-                                              (acc_coeff * si::seconds/si::seconds), 
-                                              T, 
-                                              (M_gas * si::kilograms / si::moles)
-                                            ) 
-                * c * rhod * (M_aq / M_gas)
-              )
-              /
-              (real_t(1.) + (dt * si::seconds) 
-                 * common::henry::mass_trans(rw2, (D * si::metres * si::metres / si::seconds), 
-                                            acc_coeff * si::seconds / si::seconds, T, (M_gas * si::kilograms / si::moles)) 
-                 / Henry / common::moist_air::kaBoNA<real_t>() / T)
-          ) / si::kilograms ; */
+          real_t mass_helper =  (gass_mass_HRT + (m_old  - gass_mass_HRT) * exp(real_t(-1) * dt * si::seconds * k_Henry / HRT) ) 
+                                / si::kilograms;
 
           return mass_helper;// > 0 ? mass_helper : 0;
         }
