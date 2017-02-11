@@ -229,6 +229,9 @@ namespace libcloudphxx
           // Estimating the impact of natural and anthropogenic emissions on cloud chemistry Part I
           //real_t mass_helper =  (gass_mass_HRT + (m_old  - gass_mass_HRT) * exp(real_t(-1) * dt * si::seconds * k_Henry / HRT) ) / si::kilograms;
 
+//std::cerr<<"M_gas "<< M_gas        << std::endl;
+//std::cerr<<"HRT   "<< HRT          << std::endl;
+//std::cerr<<"dt k  "<< dt * k_Henry << std::endl; 
 
           // implicit in aqueous phase and explicit in gas phase solution
           real_t mass_helper = (m_old + dt * si::seconds * k_Henry * M_aq / M_gas * gass_mass) 

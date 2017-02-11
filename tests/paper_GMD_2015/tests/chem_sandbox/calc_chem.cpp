@@ -54,7 +54,7 @@ int main(int ac, char** av)
       //"--outfreq=200  --dt=1 --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false --rng_seed=44 ";
       "--outfreq=10  --dt=1 --nt=100 --spinup=100 --nx=76 --nz=76 --relax_th_rv=false --rng_seed=44 ";
     set<string> opts_micro({
-      "--micro=lgrngn_chem --outdir=out_"+kernel+" --backend=CUDA --adv_serial=False --sd_conc=256 "
+      "--micro=lgrngn_chem --outdir=out_"+kernel+" --backend=serial --adv_serial=False --sd_conc=256 "
                       "--sstp_cond=10 --coal=True --sedi=True " 
                       "--w_max=.6 "
                       "--chem_switch=True --chem_dsl=True --chem_dsc=True --chem_rho=1.8e3 --sstp_chem=10 "  
