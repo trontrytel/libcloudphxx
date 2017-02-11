@@ -189,42 +189,34 @@ namespace libcloudphxx
               assert(false);
           }
        
-          //mean molecular velocity
-          quantity<si::velocity, real_t> molec_vel = common::henry::molec_vel(T, M_gas * si::kilograms / si::moles); 
-          //mean path
-          quantity<si::length, real_t> mean_path = common::henry::gas_mean_path(D * si::metres * si::metres / si::seconds, molec_vel); 
-          // Knudsen number
-          quantity<si::dimensionless, real_t> Kn = common::henry::gas_Kn(mean_path, rw2);
-
-          // Eq. 3 from Sensitivity Analysis of a Chemical Mechanism 
-          // for Aqueous-Phase Atmospheric Chemistry by Pandis and Seinfeld 1989
-          quantity<si::dimensionless, real_t> eta_H = 
-            real_t(1) / (
-              real_t(1) + Kn * (
-                (real_t(1.33) + real_t(0.71) / Kn) / (real_t(1) + real_t(1) / Kn) + real_t(4) * (real_t(1) - acc_coeff) / real_t(3) / acc_coeff
-              )
-            );
-
           typedef divide_typeof_helper<
             si::dimensionless,  
             si::time
           >::type one_over_time;
- 
-          // Eq. 2 from Sensitivity Analysis of a Chemical Mechanism 
-          // for Aqueous-Phase Atmospheric Chemistry by Pandis and Seinfeld 1989
-          quantity<one_over_time, real_t> k_Henry = real_t(3) * eta_H * D * si::metres * si::metres / si::seconds / rw2;
+          // helper for mass transfer coefficient
+          // Peter Warneck - Chemistry of the Natural Atmosphere (chapter 8.4.2 eq. 8.23)
+          quantity<one_over_time, real_t> k_Henry = 
+            common::henry::mass_trans(
+              rw2,
+              (D * si::metres * si::metres / si::seconds),
+              (acc_coeff * si::seconds/si::seconds),
+              T,
+              (M_gas * si::kilograms / si::moles)
+            );
 
           // and another helper (Henry * gas constant * Temperature)
           quantity<si::dimensionless, real_t> HRT = Henry * common::moist_air::kaBoNA<real_t>() * T;
 
-          // helper for gass moles
-          quantity<si::amount, real_t> gass_moles = c * rhod * V * si::cubic_metres / (M_gas * si::kilograms / si::moles) * HRT;
+          // helper for the amount of moles of the gass phase
+          quantity<si::amount, real_t> gass_moles = c * rhod * V * si::cubic_metres / (M_gas * si::kilograms / si::moles);
 
-          // Solution to Eq. 1 from Sensitivity Analysis of a Chemical Mechanism for Aqueous-Phase Atmospheric Chemistry 
-          // by Pandis and Seinfeld 1989
-          // see also Eq. 19 - 20 from Alfonso and Raga 2002 
-          // Estimating the impact of natural and anthropogenic emissions on cloud chemistry Part I
-          real_t moles_helper = (gass_moles + (n_old  - gass_moles) * exp(real_t(-1) * dt * si::seconds * k_Henry / HRT)) / si::moles;
+          // implicit solution to the eq. 8.22 from chapter 8.4.2 
+          // in Peter Warneck Chemistry of the Natural Atmosphere  
+          real_t moles_helper = (
+            (n_old + (dt * si::seconds) * k_Henry * gass_moles)
+            /
+            (real_t(1.) + (dt * si::seconds) * k_Henry / HRT)
+          ) / si::moles;
 
           return moles_helper;// > 0 ? moles_helper : 0;
         }
