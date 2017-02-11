@@ -17,7 +17,6 @@ for case in ('case4', 'case5', 'case6'):
     print " "
     print case
  
-
     # open hdf5 files with data
     h5f_ini = h5.File('data/' + case + '/out_hall_pinsky_stratocumulus/timestep0000000000.h5', 'r')
     h5f_end = h5.File('data/' + case + '/out_hall_pinsky_stratocumulus/timestep0000011800.h5', 'r')
