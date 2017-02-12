@@ -8,7 +8,7 @@ import subprocess
 
 import numpy as np
 import math
-import colormaps as cmaps
+#import colormaps as cmaps
 import h5py as h5
 
 # libcloud bindings to python (to have access to library constants) 
@@ -22,8 +22,8 @@ import matplotlib
 matplotlib.use('Agg') # Must be before importing matplotlib.pyplot or pylab!
 import matplotlib.pyplot as plt
 
-for case in ('case_base', 'case1', 'case3', 'case4', 'case5', 'case6'):
-
+#for case in ('case_base', 'case1', 'case3', 'case4', 'case5', 'case6'):
+for case in ['current_master']:
     # read in the data
     data = h5.File('data/' + case + '/out_hall_pinsky_stratocumulus/timestep0000011800.h5', 'r')
     mesh = h5.File('data/' + case + '/out_hall_pinsky_stratocumulus/const.h5', 'r')

@@ -28,7 +28,7 @@ num_wet   = wet_edges.size - 1
 
 # loop for case with and without aqueous chemistry
 #for case in ('case_base', 'case1', 'case3', 'case4', 'case5', 'case6'):
-for case in ["case5_moles"]:
+for case in ["current_master"]:
     for kernel in kernels:
     
         # helper arrays for storing initial and cutoff dry radii as well as final and cutoff wet radii

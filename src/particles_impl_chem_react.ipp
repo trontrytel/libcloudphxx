@@ -213,23 +213,23 @@ namespace libcloudphxx
 
         BOOST_GPU_ENABLED
         real_t operator()(
-          const thrust::tuple<real_t, real_t> &tpl
+          const thrust::tuple<real_t, real_t, real_t> &tpl
         ) 
         { 
           //const quantity<si::mass, real_t>
           const real_t 
-            n_S6_new  = thrust::get<0>(tpl),     // * si::moles
-            rd3       = thrust::get<1>(tpl);     // * si::cubic_metres
+            n_S6_old  = thrust::get<0>(tpl),     // * si::moles
+            n_S6_new  = thrust::get<1>(tpl),     // * si::moles
+            rd3       = thrust::get<2>(tpl);     // * si::cubic_metres
 
           return 
-            n_S6_new  * (common::molar_mass::M_H2SO4<real_t>() / si::kilograms * si::moles)
-            / real_t(4./3) /
+            rd3 + real_t(3./4) / 
 #if !defined(__NVCC__)
             pi<real_t>()
 #else
             CUDART_PI
 #endif
-            / chem_rho;
+            / chem_rho * (n_S6_new - n_S6_old) * common::molar_mass::M_H2SO4<real_t>() / si::kilograms * si::moles;
         }
       };
     };
@@ -244,6 +244,14 @@ namespace libcloudphxx
 
       //non-equilibrium chemical reactions (oxidation)
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
+
+      thrust_device::vector<real_t> &old_S_VI(tmp_device_real_part1);
+
+      // copy old H2SO4 values to allow dry radii recalculation
+      thrust::copy(
+        chem_bgn[S_VI], chem_end[S_VI], // from
+        old_S_VI.begin()                // to
+      );
 
       // do chemical reactions
       chem_stepper.do_step(
@@ -265,14 +273,15 @@ namespace libcloudphxx
       // TODO: using namespace for S_VI
       typedef thrust::zip_iterator<
         thrust::tuple<
+          typename thrust_device::vector<real_t>::iterator, // old_S_VI
           typename thrust_device::vector<real_t>::iterator, // new_S_VI
           typename thrust_device::vector<real_t>::iterator  // rd3
         >
       > zip_it_t;
 
       zip_it_t 
-        arg_begin(thrust::make_tuple(chem_bgn[S_VI], rd3.begin())),
-        arg_end(  thrust::make_tuple(chem_end[S_VI], rd3.end()));
+        arg_begin(thrust::make_tuple(old_S_VI.begin(), chem_bgn[S_VI], rd3.begin())),
+        arg_end(  thrust::make_tuple(old_S_VI.end(),   chem_end[S_VI], rd3.end()));
  
       // do oxidation reaction only for droplets that are "big enough" (marked by chem_flag) 
       thrust::transform_if(
