@@ -23,7 +23,7 @@ matplotlib.use('Agg') # Must be before importing matplotlib.pyplot or pylab!
 import matplotlib.pyplot as plt
 
 #for case in ('case_base', 'case1', 'case3', 'case4', 'case5', 'case6'):
-for case in ['current_master']:
+for case in ['current_master', 'moles', 'moles_with_sedi']:
     # read in the data
     data = h5.File('data/' + case + '/out_hall_pinsky_stratocumulus/timestep0000011800.h5', 'r')
     mesh = h5.File('data/' + case + '/out_hall_pinsky_stratocumulus/const.h5', 'r')
@@ -97,4 +97,4 @@ for case in ['current_master']:
     ax.set_yticklabels(["0", "0.3", "0.6", "0.9", "1.2", "1.5"])
 
     plt.grid()
-    plt.savefig('plots/' + case + "_ph_profile.eps")
+    plt.savefig('plots/' + case + "_ph_profile.svg")#eps
