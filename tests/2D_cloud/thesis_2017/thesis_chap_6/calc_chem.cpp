@@ -136,6 +136,6 @@ int main(int ac, char** av)
         if (EXIT_SUCCESS != system(cmd.str().c_str()))
           error_macro("model run failed: " << cmd.str())
       }
-    }
+    } 
   }
 }
