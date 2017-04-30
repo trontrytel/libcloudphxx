@@ -45,6 +45,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::scope().attr("R_v") = (real_t) (cmn::moist_air::R_v<real_t>() / si::joules * si::kilograms * si::kelvins);
     bp::scope().attr("c_pd") = (real_t) (cmn::moist_air::c_pd<real_t>() / si::joules * si::kilograms * si::kelvins);
     bp::scope().attr("c_pv") = (real_t) (cmn::moist_air::c_pv<real_t>() / si::joules * si::kilograms * si::kelvins);
+    bp::scope().attr("c_pw") = (real_t) (cmn::moist_air::c_pw<real_t>() / si::joules * si::kilograms * si::kelvins);
     bp::scope().attr("g") = (real_t) (cmn::earth::g<real_t>() / si::metres * si::seconds * si::seconds);
     bp::scope().attr("p_1000") = (real_t) (cmn::theta_std::p_1000<real_t>() / si::pascals);
     bp::scope().attr("eps") = (real_t) (cmn::moist_air::eps<real_t>());
@@ -114,6 +115,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::def("th_dry2std", &common::th_dry2std<real_t>);
     bp::def("th_std2dry", &common::th_std2dry<real_t>);
     bp::def("p_vs", &common::p_vs<real_t>);
+    bp::def("l_v", &common::l_v<real_t>);
     bp::def("T", &common::T<real_t>);
     bp::def("p", &common::p<real_t>);
     bp::def("rw3_cr", &common::rw3_cr<real_t>);
@@ -296,6 +298,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def("diag_wet_mass_dens", &lgr::particles_proto_t<real_t>::diag_wet_mass_dens)
       .def("diag_chem",    &lgr::particles_proto_t<real_t>::diag_chem)
       .def("diag_precip_rate",    &lgr::particles_proto_t<real_t>::diag_precip_rate)
+      .def("diag_puddle",    &lgrngn::diag_puddle<real_t>)
       .def("outbuf",       &lgrngn::outbuf<real_t>)
     ;
     // functions
