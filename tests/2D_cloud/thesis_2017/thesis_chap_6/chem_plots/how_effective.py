@@ -17,7 +17,8 @@ from libcloudphxx import common as cm
 # path to build directory with data
 dir_path = '../../../build/thesis_2017/thesis_chap_6/'
 
-for case in ['case_base', 'case3', 'case4', 'case5', 'case6']:
+#for case in ['case_base', 'case3', 'case4', 'case5', 'case6']:
+for case in ['review_hall', 'review_hall_davis_no_waals', 'review_hall_pinsky_stratocumulus', 'review_onishi_hall', 'review_onishi_hall_davis_no_waals', 'review_vohl_davis_no_waals']:
 
     # open hdf5 files with data
     h5f_ini = h5.File(dir_path + 'out_' + case + '/timestep0000010000.h5', 'r') # model state afer spinup

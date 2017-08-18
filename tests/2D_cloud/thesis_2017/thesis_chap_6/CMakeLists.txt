@@ -1,4 +1,5 @@
 add_executable(calc_chem calc_chem.cpp)
+add_executable(calc_review calc_review.cpp)
 #add_test(calc_chem calc_chem ${CMAKE_BINARY_DIR})
 
 find_package(HDF5 COMPONENTS CXX REQUIRED QUIET)
