@@ -31,7 +31,9 @@ set(libcloudphxx_CXX_FLAGS_DEBUG "${libcloudphxx_CXX_FLAGS_DEBUG} -std=c++11 -g 
 
 ############################################################################################
 # release with debug info mode compiler flags
-set(libcloudphxx_CXX_FLAGS_RELWITHDEBINFO "${libcloudphxx_CXX_FLAGS_RELWITHDEBINFO} -std=c++11 -O3 -march=native")
+#set(libcloudphxx_CXX_FLAGS_RELWITHDEBINFO "${libcloudphxx_CXX_FLAGS_RELWITHDEBINFO} -std=c++11 -O3 -march=native")
+set(libcloudphxx_CXX_FLAGS_RELWITHDEBINFO "${libcloudphxx_CXX_FLAGS_RELWITHDEBINFO} -std=c++11 -O3 ")
+
 
 ############################################################################################
 # release mode compiler flags
@@ -40,7 +42,8 @@ if(
   CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
   CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"
 )
-  set(libcloudphxx_CXX_FLAGS_RELEASE "${libcloudphxx_CXX_FLAGS_RELEASE} -std=c++11 -DNDEBUG -Ofast -march=native -Winline")
+  #set(libcloudphxx_CXX_FLAGS_RELEASE "${libcloudphxx_CXX_FLAGS_RELEASE} -std=c++11 -DNDEBUG -Ofast -march=native -Winline")
+  set(libcloudphxx_CXX_FLAGS_RELEASE "${libcloudphxx_CXX_FLAGS_RELEASE} -std=c++11 -DNDEBUG -Ofast -Winline")
 endif()
 
 ############################################################################################

@@ -110,7 +110,8 @@ if (CUDA_FOUND)
   # Release with debug info mode cuda flags
   if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -O3 -use_fast_math
-        -Xcompiler=-Ofast,-march=native,-fopenmp")
+        -Xcompiler=-Ofast,-fopenmp")
+        #-Xcompiler=-Ofast,-march=native,-fopenmp")
   # Debug mode cuda flags
   elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -DTHRUST_DEBUG -lineinfo
@@ -118,7 +119,8 @@ if (CUDA_FOUND)
   # Release mode cuda flags
   else()
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math
-        -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp")
+        -Xcompiler=-Ofast,-DNDEBUG,-fopenmp")
+        # -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp")
   endif()
 
   # Check if OpenMP supports custom reductions

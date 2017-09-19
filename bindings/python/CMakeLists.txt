@@ -14,7 +14,8 @@ target_include_directories(cloudphxx PUBLIC ${PYTHON_INCLUDE_DIRS})
 target_link_libraries(cloudphxx ${PYTHON_LIBRARIES})
 
 # informing the Python bindings where to find Boost.Python 
-find_package(Boost COMPONENTS python QUIET)
+find_package(Boost COMPONENTS python REQUIRED)
+
 if (NOT Boost_FOUND)
   message(FATAL_ERROR "
     Boost.Python not found. 
