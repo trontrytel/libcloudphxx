@@ -31,3 +31,15 @@ target_link_libraries(icicle ${Boost_LIBRARIES})
 target_link_libraries(icicle ${libcloudphxx_LIBRARIES})
 
 install(TARGETS icicle DESTINATION bin)
+
+add_executable(icicle_psc icicle_psc.cpp)
+
+target_link_libraries(icicle_psc ${libmpdataxx_LIBRARIES})
+target_include_directories(icicle_psc PUBLIC ${libmpdataxx_INCLUDE_DIRS})
+
+find_package(Boost COMPONENTS thread iostreams system timer program_options filesystem REQUIRED)
+target_link_libraries(icicle_psc ${Boost_LIBRARIES})
+
+target_link_libraries(icicle_psc ${libcloudphxx_LIBRARIES})
+
+install(TARGETS icicle_psc DESTINATION bin)
