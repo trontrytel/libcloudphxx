@@ -35,7 +35,7 @@ add_executable(icicle icicle.cpp)
 target_link_libraries(icicle ${libmpdataxx_LIBRARIES})
 target_include_directories(icicle PUBLIC ${libmpdataxx_INCLUDE_DIRS})
 if("${current_host}" MATCHES "sampo")
-  target_include_directories(${model} PUBLIC ${CMAKE_SOURCE_DIR}/../../../libmpdataxx/) 
+  target_include_directories(icicle PUBLIC ${CMAKE_SOURCE_DIR}/../../../libmpdataxx/) 
 endif()
 
 find_package(Boost COMPONENTS thread iostreams system timer program_options filesystem REQUIRED)

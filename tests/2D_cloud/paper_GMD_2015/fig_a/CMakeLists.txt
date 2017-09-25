@@ -50,7 +50,7 @@ target_include_directories(plot_lgrngn_spec PUBLIC ${HDF5_INCLUDE_DIRS})
 target_link_libraries(plot_lgrngn_spec ${Boost_LIBRARIES})
 target_include_directories(plot_lgrngn_spec PUBLIC ${Boost_INCLUDE_DIRS})
 if("${current_host}" MATCHES "sampo")
-  target_include_directories(plot_${micro} PUBLIC ${CMAKE_SOURCE_DIR}/../../../gnuplot-iostream/)
+  target_include_directories(plot_lgrngn_spec PUBLIC ${CMAKE_SOURCE_DIR}/../../../gnuplot-iostream/)
 endif()
 
 # tests for travis (or any other case where libcloud can't use CUDA)
