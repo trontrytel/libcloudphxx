@@ -1,4 +1,14 @@
-find_package(libmpdata++)
+# TODO - tmp
+# get information about current host name
+cmake_host_system_information(RESULT current_host QUERY HOSTNAME)
+
+if("${current_host}" MATCHES "sampo")
+  # using include() istead of find_package(libmpdata++) to use local CMake code
+  # and not the system-installed one
+  include(${CMAKE_SOURCE_DIR}/../../../libmpdataxx/libmpdata++-config.cmake)
+else()
+  find_package(libmpdata++)
+endif()
 
 if (NOT libmpdataxx_FOUND)
   message(FATAL_ERROR "libmpdata++ not found")
@@ -24,6 +34,9 @@ add_executable(icicle icicle.cpp)
 
 target_link_libraries(icicle ${libmpdataxx_LIBRARIES})
 target_include_directories(icicle PUBLIC ${libmpdataxx_INCLUDE_DIRS})
+if("${current_host}" MATCHES "sampo")
+  target_include_directories(${model} PUBLIC ${CMAKE_SOURCE_DIR}/../../../libmpdataxx/) 
+endif()
 
 find_package(Boost COMPONENTS thread iostreams system timer program_options filesystem REQUIRED)
 target_link_libraries(icicle ${Boost_LIBRARIES})

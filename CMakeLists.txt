@@ -1,3 +1,7 @@
+# TODO - tmp
+# get information about current host name
+cmake_host_system_information(RESULT current_host QUERY HOSTNAME)
+
 cmake_minimum_required(VERSION 2.8.11) # for target_include_directories
 project(libcloudph++ CXX C)
 
@@ -109,18 +113,22 @@ if (CUDA_FOUND)
   
   # Release with debug info mode cuda flags
   if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -O3 -use_fast_math
-        -Xcompiler=-Ofast,-fopenmp")
-        #-Xcompiler=-Ofast,-march=native,-fopenmp")
+    if("${current_host}" MATCHES "sampo")
+      set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -O3 -use_fast_math -Xcompiler=-Ofast,-fopenmp")
+    else()
+      set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-fopenmp")
+    endif()
   # Debug mode cuda flags
   elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -DTHRUST_DEBUG -lineinfo
         \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler=-fopenmp,-g,-rdynamic")  
   # Release mode cuda flags
   else()
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math
-        -Xcompiler=-Ofast,-DNDEBUG,-fopenmp")
-        # -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp")
+    if("${current_host}" MATCHES "sampo")
+      set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math -Xcompiler=-Ofast,-DNDEBUG,-fopenmp")
+    else()
+      set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp")
+    endif()
   endif()
 
   # Check if OpenMP supports custom reductions

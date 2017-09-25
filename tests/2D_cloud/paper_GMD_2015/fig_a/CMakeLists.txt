@@ -1,3 +1,7 @@
+# TODO - tmp
+# get information about current host name
+cmake_host_system_information(RESULT current_host QUERY HOSTNAME)
+
 # tests from GMD_2015 paper (should be run on CUDA)
 add_executable(calc calc.cpp)
 add_test(calc calc ${CMAKE_BINARY_DIR})
@@ -34,6 +38,9 @@ foreach(micro blk_1m blk_2m lgrngn)
   target_include_directories(plot_${micro} PUBLIC ${HDF5_INCLUDE_DIRS})
   target_link_libraries(plot_${micro} ${Boost_LIBRARIES})
   target_include_directories(plot_${micro} PUBLIC ${Boost_INCLUDE_DIRS})
+  if("${current_host}" MATCHES "sampo")
+    target_include_directories(plot_${micro} PUBLIC ${CMAKE_SOURCE_DIR}/../../../gnuplot-iostream/)
+  endif()
 endforeach()
 
 add_executable(plot_lgrngn_spec plot_lgrngn_spec.cpp)
@@ -42,6 +49,9 @@ target_link_libraries(plot_lgrngn_spec ${HDF5_LIBRARIES})
 target_include_directories(plot_lgrngn_spec PUBLIC ${HDF5_INCLUDE_DIRS})
 target_link_libraries(plot_lgrngn_spec ${Boost_LIBRARIES})
 target_include_directories(plot_lgrngn_spec PUBLIC ${Boost_INCLUDE_DIRS})
+if("${current_host}" MATCHES "sampo")
+  target_include_directories(plot_${micro} PUBLIC ${CMAKE_SOURCE_DIR}/../../../gnuplot-iostream/)
+endif()
 
 # tests for travis (or any other case where libcloud can't use CUDA)
 add_executable(travis_calc_blk travis_calc_blk.cpp)

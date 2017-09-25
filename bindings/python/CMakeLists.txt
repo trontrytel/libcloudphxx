@@ -14,7 +14,7 @@ target_include_directories(cloudphxx PUBLIC ${PYTHON_INCLUDE_DIRS})
 target_link_libraries(cloudphxx ${PYTHON_LIBRARIES})
 
 # informing the Python bindings where to find Boost.Python 
-find_package(Boost COMPONENTS python REQUIRED)
+find_package(Boost COMPONENTS python QUIET)
 
 if (NOT Boost_FOUND)
   message(FATAL_ERROR "
@@ -52,11 +52,18 @@ execute_process (
    OUTPUT_VARIABLE PYTHON_PREFIX
 )
 file ( TO_CMAKE_PATH "${PYTHON_PREFIX}" PYTHON_PREFIX )
-execute_process (
-   COMMAND ${PYTHON_EXECUTABLE} -c
-   	"import site, sys; sys.stdout.write(site.getsitepackages()[-1])"
-   OUTPUT_VARIABLE PYTHON_SITE_DIR
-)
+
+# TODO - https://github.com/pypa/virtualenv/issues/355
+if("${current_host}" MATCHES "sampo")
+  set(PYTHON_SITE_DIR "/Users/ajaruga/clones/my_VE/lib/python2.7/site-packages")
+else()
+  execute_process (
+     COMMAND ${PYTHON_EXECUTABLE} -c
+       "import site, sys; sys.stdout.write(site.getsitepackages()[-1])"
+     OUTPUT_VARIABLE PYTHON_SITE_DIR
+  )
+endif()
+
 file ( TO_CMAKE_PATH "${PYTHON_SITE_DIR}" PYTHON_SITE_DIR )
 string ( REGEX REPLACE "^${PYTHON_PREFIX}/" ""
    PYTHON_SITE_DIR "${PYTHON_SITE_DIR}"

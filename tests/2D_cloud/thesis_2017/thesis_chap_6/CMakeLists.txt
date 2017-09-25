@@ -1,3 +1,7 @@
+# TODO - tmp
+# get information about current host name
+cmake_host_system_information(RESULT current_host QUERY HOSTNAME)
+
 add_executable(calc_chem calc_chem.cpp)
 #add_test(calc_chem calc_chem ${CMAKE_BINARY_DIR})
 
@@ -11,4 +15,7 @@ foreach(case lgrngn_ch lgrngn_ch_chem)
   target_include_directories(plot_${case} PUBLIC ${HDF5_INCLUDE_DIRS})
   target_link_libraries(plot_${case} ${Boost_LIBRARIES})
   target_include_directories(plot_${case} PUBLIC ${Boost_INCLUDE_DIRS})
+  if("${current_host}" MATCHES "sampo")
+    target_include_directories(plot_${case} PUBLIC ${CMAKE_SOURCE_DIR}/../../../gnuplot-iostream/)
+  endif()
 endforeach()
