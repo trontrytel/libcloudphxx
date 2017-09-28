@@ -1,7 +1,3 @@
-# TODO - tmp
-# get information about current host name
-cmake_host_system_information(RESULT current_host QUERY HOSTNAME)
-
 # tests from GMD_2015 paper (should be run on CUDA)
 add_executable(calc calc.cpp)
 add_test(calc calc ${CMAKE_BINARY_DIR})
@@ -31,34 +27,14 @@ add_test(calc calc ${CMAKE_BINARY_DIR})
 foreach(micro blk_1m blk_2m lgrngn)
   add_executable(plot_${micro} plot_${micro}.cpp)
   add_test(plot_${micro} plot_${micro} ${CMAKE_BINARY_DIR})
-#<<<<<<< HEAD:tests/2D_cloud/paper_GMD_2015/fig_a/CMakeLists.txt
-#  target_link_libraries(plot_${micro} ${HDF5_LIBRARIES})
-#  target_include_directories(plot_${micro} PUBLIC ${HDF5_INCLUDE_DIRS})
-#  target_link_libraries(plot_${micro} ${Boost_LIBRARIES})
-#  target_include_directories(plot_${micro} PUBLIC ${Boost_INCLUDE_DIRS})
-#  if("${current_host}" MATCHES "sampo")
-#    target_include_directories(plot_${micro} PUBLIC ${CMAKE_SOURCE_DIR}/../../../gnuplot-iostream/)
-#  endif()
-#=======
   target_link_libraries(plot_${micro} ${libmpdataxx_LIBRARIES})
   target_include_directories(plot_${micro} PUBLIC ${libmpdataxx_INCLUDE_DIRS})
-#>>>>>>> e43db4e2acde18f74e9aea8d8bc63b86834fac3b:models/kinematic_2D/tests/paper_GMD_2015/fig_a/CMakeLists.txt
 endforeach()
 
 add_executable(plot_lgrngn_spec plot_lgrngn_spec.cpp)
 add_test(plot_lgrngn_spec plot_lgrngn_spec ${CMAKE_BINARY_DIR})
-#<<<<<<< HEAD:tests/2D_cloud/paper_GMD_2015/fig_a/CMakeLists.txt
-#target_link_libraries(plot_lgrngn_spec ${HDF5_LIBRARIES})
-#target_include_directories(plot_lgrngn_spec PUBLIC ${HDF5_INCLUDE_DIRS})
-#target_link_libraries(plot_lgrngn_spec ${Boost_LIBRARIES})
-#target_include_directories(plot_lgrngn_spec PUBLIC ${Boost_INCLUDE_DIRS})
-#if("${current_host}" MATCHES "sampo")
-#  target_include_directories(plot_lgrngn_spec PUBLIC ${CMAKE_SOURCE_DIR}/../../../gnuplot-iostream/)
-#endif()
-#=======
 target_link_libraries(plot_lgrngn_spec ${libmpdataxx_LIBRARIES})
 target_include_directories(plot_lgrngn_spec PUBLIC ${libmpdataxx_INCLUDE_DIRS})
-#>>>>>>> e43db4e2acde18f74e9aea8d8bc63b86834fac3b:models/kinematic_2D/tests/paper_GMD_2015/fig_a/CMakeLists.txt
 
 # tests for travis (or any other case where libcloud can't use CUDA)
 add_executable(travis_calc_blk travis_calc_blk.cpp)
