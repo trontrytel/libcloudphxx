@@ -2,15 +2,28 @@
 # get information about current host name
 cmake_host_system_information(RESULT current_host QUERY HOSTNAME)
 
+# needed for the OpenMP test to work in C++-only project
+# (see http://public.kitware.com/Bug/view.php?id=11910)
 cmake_minimum_required(VERSION 2.8.11) # for target_include_directories
+
 project(libcloudph++ CXX C)
+
+# the policies we care about:
+# - CMP0025 - make CMake distinguis between Apple and LLVM clang
+# - CMP0042 - make CMake use RPATHs on OSX
+# - CMP0060 - make CMake always keep absoult RPATHs, even if installing in implicit directory
+if(CMAKE_VERSION VERSION_GREATER 2.9)
+  cmake_policy(VERSION 3.0)
+endif()
+
+set(CMAKE_MACOSX_RPATH ON) # explicit, since policy CMP0042 didn't work...
 
 # using include() istead of find_package(libcloudph++) to use local CMake code
 # and not the system-installed one
-include(${CMAKE_SOURCE_DIR}/libcloudph++-config.cmake)
-if (NOT libcloudphxx_FOUND)
-  message(FATAL_ERROR "local libcloudph++-config.cmake not found!")
-endif()
+#include(${CMAKE_SOURCE_DIR}/libcloudph++-config.cmake)
+#if (NOT libcloudphxx_FOUND)
+#  message(FATAL_ERROR "local libcloudph++-config.cmake not found!")
+#endif()
 
 # Set a default build type for single-configuration
 # CMake generators if no build type is set.
@@ -24,10 +37,21 @@ set(CMAKE_CXX_FLAGS "-I${CMAKE_SOURCE_DIR}/include ${CMAKE_CXX_FLAGS}")
 # enabling additional warnings
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
 
-set(CMAKE_CXX_FLAGS_DEBUG "${libcloudphxx_CXX_FLAGS_DEBUG}")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${libcloudphxx_CXX_FLAGS_RELWITHDEBINFO}")
-set(CMAKE_CXX_FLAGS_RELEASE "${libcloudphxx_CXX_FLAGS_RELEASE}")
+# enabling c++11
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+# config-specific flags
+set(CMAKE_CXX_FLAGS_DEBUG " -g -DTHRUST_DEBUG") #TODO: -Og if compiler supports it?
+
+# march=native doesnt work on sampo because the assembler too old
+# Updating binutils should help:   https://stackoverflow.com/questions/33193970/error-suffix-or-operands-invalid-for-vbroadcastss
+if("${current_host}" MATCHES "sampo")
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO " -Ofast -march=corei7-avx")
+  set(CMAKE_CXX_FLAGS_RELEASE " -DNDEBUG -Ofast -march=corei7-avx -Winline")
+else()
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO " -Ofast -march=native")
+  set(CMAKE_CXX_FLAGS_RELEASE " -DNDEBUG -Ofast -march=native -Winline")
+endif()
 ############################################################################################
 # Thrust
 include(CheckCXXSourceCompiles)
@@ -99,7 +123,7 @@ if (CUDA_FOUND)
     set (msg "20")
     message(STATUS "CUDA capability check failed, assuming a default of ${msg}")
   endif()
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-code=sm_${msg}")
+  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-code=sm_${msg} --std=c++11")
   if (msg EQUAL "21") # see https://devtalk.nvidia.com/default/topic/606195/-solved-nvcc-fatal-unsupported-gpu-architecture-compute_21-/
     set(msg "20")
   endif()
@@ -153,6 +177,23 @@ if (CUDA_FOUND)
   endif()
 
   add_definitions(-DCUDA_FOUND)
+endif()
+
+############################################################################################
+# Boost libraries
+find_package(Boost)
+if(Boost_FOUND)
+#TODO: if boost is not linked in some program, link boost libs to libcloudphxx_lgrngn.so ?
+#  set(libcloudphxx_LIBRARIES "${libcloudphxx_LIBRARIES};${Boost_LIBRARIES}")
+  set(libcloudphxx_INCLUDE_DIRS "${libcloudphxx_INCLUDE_DIRS};${Boost_INCLUDE_DIRS}")
+else()
+#TODO: check separately for optional and mandatory components
+message(FATAL_ERROR "Boost (or some of its components) not found.
+
+* To insall Boost, please try:
+*   Debian/Ubuntu: sudo apt-get install libboost-all-dev
+*   Fedora: sudo yum install boost-devel
+")
 endif()
 
 ############################################################################################

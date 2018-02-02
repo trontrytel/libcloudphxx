@@ -142,9 +142,6 @@ namespace libcloudphxx
       // is it a pure const_multi run, i.e. no sd_conc
       bool pure_const_multi;
 
-      // are count_num and count_ijk up to date
-      bool counted;
-
       // timestep counter
       n_t stp_ctr;
 
@@ -250,7 +247,6 @@ namespace libcloudphxx
         zero(0),
         n_part(0),
         sorted(false), 
-        counted(false), 
         u01(tmp_device_real_part),
         n_user_params(opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
@@ -321,9 +317,9 @@ namespace libcloudphxx
       // methods
       void sanity_checks();
       void init_SD_with_distros();
-      void init_SD_with_distros_sd_conc(const common::unary_function<real_t> *, const real_t &);
-      void init_SD_with_distros_tail(const common::unary_function<real_t> *, const real_t);
-      void init_SD_with_distros_const_multi(const common::unary_function<real_t> *);
+      void init_SD_with_distros_sd_conc(const common::unary_function<real_t> &, const real_t &);
+      void init_SD_with_distros_tail(const common::unary_function<real_t> &, const real_t);
+      void init_SD_with_distros_const_multi(const common::unary_function<real_t> &);
       void init_SD_with_distros_finalize(const real_t &);
       void init_SD_with_sizes();
       void init_sanity_check(
@@ -334,29 +330,29 @@ namespace libcloudphxx
 
       void init_dry_sd_conc();
       void init_dry_const_multi(
-        const common::unary_function<real_t> *n_of_lnrd
+        const common::unary_function<real_t> &n_of_lnrd
       );
       void init_dry_dry_sizes(real_t);
 
       void init_n_sd_conc(
-        const common::unary_function<real_t> *n_of_lnrd
+        const common::unary_function<real_t> &n_of_lnrd
       );
       void init_n_const_multi(const thrust_size_t &);
 
       void dist_analysis_sd_conc(
-        const common::unary_function<real_t> *n_of_lnrd,
+        const common::unary_function<real_t> &n_of_lnrd,
         const n_t sd_conc,
         const real_t dt = 1.
       );
       void dist_analysis_const_multi(
-        const common::unary_function<real_t> *n_of_lnrd
+        const common::unary_function<real_t> &n_of_lnrd 
       );
       void init_ijk();
       void init_xyz();
       void init_kappa(const real_t &);
       void init_count_num_sd_conc(const real_t & = 1);
-      void init_count_num_const_multi(const common::unary_function<real_t> *);
-      void init_count_num_const_multi(const common::unary_function<real_t> *, const thrust_size_t &);
+      void init_count_num_const_multi(const common::unary_function<real_t> &);
+      void init_count_num_const_multi(const common::unary_function<real_t> &, const thrust_size_t &);
       void init_count_num_dry_sizes(const real_t &);
       void init_count_num_hlpr(const real_t &, const thrust_size_t &);
       void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const long int = 0);
@@ -454,40 +450,5 @@ namespace libcloudphxx
 
       void step_finalize(const opts_t<real_t>&);
     };
-
-    // ctor
-    template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr, int n_x_tot) 
-    {
-#if defined(__NVCC__)
-      if(opts_init.dev_id >= 0)
-        cudaSetDevice(opts_init.dev_id);
-#endif
-      if(opts_init.dev_count < 2) // no distmem
-        n_x_tot = opts_init.nx;
-
-      pimpl.reset(new impl(opts_init, n_x_bfr, n_x_tot));
-
-      this->opts_init = &pimpl->opts_init;
-      pimpl->sanity_checks();
-
-      // init output map to 0
-      for(int i=0; i < chem_all+2; ++i)
-        pimpl->output_puddle[static_cast<output_t>(i)] = 0.;
-    }
-
-    // dtor
-    template <typename real_t, backend_t device>
-    particles_t<real_t, device>::~particles_t() {};
-
-    // outbuf
-    template <typename real_t, backend_t device>
-    real_t *particles_t<real_t, device>::outbuf() 
-    {
-      pimpl->fill_outbuf();
-      // restore the count_num and count_ijk arrays
-      pimpl->hskpng_count();
-      return &(*(pimpl->tmp_host_real_cell.begin()));
-    }
   };
 };

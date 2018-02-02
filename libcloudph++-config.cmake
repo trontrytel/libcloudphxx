@@ -1,41 +1,43 @@
-# TODO - tmp
-# get information about current host name
-cmake_host_system_information(RESULT current_host QUERY HOSTNAME)
-
-# needed for the OpenMP test to work in C++-only project
-# (see http://public.kitware.com/Bug/view.php?id=11910)
-cmake_minimum_required(VERSION 2.8.8) 
-
-# the policies we care about:
-# - CMP0025 - make CMake distinguis between Apple and LLVM clang
-# - CMP0042 - make CMake use RPATHs on OSX
-# - CMP0060 - make CMake always keep absoult RPATHs, even if installing in implicit directory
-if(CMAKE_VERSION VERSION_GREATER 2.9)
-  cmake_policy(VERSION 3.0)
-endif()
-
-set(CMAKE_MACOSX_RPATH ON) # explicit, since policy CMP0042 didn't work...
+#<<<<<<< HEAD
+## TODO - tmp
+## get information about current host name
+#cmake_host_system_information(RESULT current_host QUERY HOSTNAME)
+#
+## needed for the OpenMP test to work in C++-only project
+## (see http://public.kitware.com/Bug/view.php?id=11910)
+#cmake_minimum_required(VERSION 2.8.8) 
+#
+## the policies we care about:
+## - CMP0025 - make CMake distinguis between Apple and LLVM clang
+## - CMP0042 - make CMake use RPATHs on OSX
+## - CMP0060 - make CMake always keep absoult RPATHs, even if installing in implicit directory
+#if(CMAKE_VERSION VERSION_GREATER 2.9)
+#  cmake_policy(VERSION 3.0)
+#endif()
+#
+#set(CMAKE_MACOSX_RPATH ON) # explicit, since policy CMP0042 didn't work...
+#=======
+#>>>>>>> 46a6552877efe55bb8a3b2db0419a7bc30c00fa5
 
 ############################################################################################
 # the following variables will be set:
 set(libcloudphxx_FOUND False)
 set(libcloudphxx_INCLUDE_DIRS "")
 set(libcloudphxx_LIBRARIES "")
-set(libcloudphxx_CXX_FLAGS_DEBUG "")
-set(libcloudphxx_CXX_FLAGS_RELWITHDEBINFO "")
-set(libcloudphxx_CXX_FLAGS_RELEASE "")
-
 
 ############################################################################################
 # libcloudphxx libs and headers 
 # also work for non-default install location (i.e. for make DESTDIR=<dir> install)
 set(libcloudphxx_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}/../../include/")
-set(libcloudphxx_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/../../lib/libcloudphxx_lgrngn.so")
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+  set(CONFIG_SUFFIX "")
+elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+  set(CONFIG_SUFFIX "_relwithdbg")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(CONFIG_SUFFIX "_dbg")
+endif()
 
-############################################################################################
-# debug mode compiler flags
-set(libcloudphxx_CXX_FLAGS_DEBUG "${libcloudphxx_CXX_FLAGS_DEBUG} -std=c++11 -g -DTHRUST_DEBUG") #TODO: -Og if compiler supports it?
-
+#<<<<<<< HEAD
 ############################################################################################
 # release with debug info mode compiler flags
 if("${current_host}" MATCHES "sampo")
@@ -57,7 +59,14 @@ if(
     set(libcloudphxx_CXX_FLAGS_RELEASE "${libcloudphxx_CXX_FLAGS_RELEASE} -std=c++11 -DNDEBUG -Ofast -march=native -Winline")
   endif()
 endif()
+#=======
+set(libcloudphxx_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/../../lib/libcloudphxx_lgrngn${CONFIG_SUFFIX}.so")
+if(NOT EXISTS ${libcloudphxx_LIBRARIES})
+  message(FATAL_ERROR "The libcloudph++ library for selected config not found at ${libcloudphxx_LIBRARIES}") 
+endif() 
 
+#>>>>>>> 46a6552877efe55bb8a3b2db0419a7bc30c00fa5
+#
 ############################################################################################
 # Boost libraries
 find_package(Boost)
