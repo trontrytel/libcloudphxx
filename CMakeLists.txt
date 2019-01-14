@@ -42,7 +42,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # config-specific flags
 set(CMAKE_CXX_FLAGS_DEBUG " -g -DTHRUST_DEBUG") #TODO: -Og if compiler supports it?
-
 # march=native doesnt work on sampo because the assembler too old
 # Updating binutils should help:   https://stackoverflow.com/questions/33193970/error-suffix-or-operands-invalid-for-vbroadcastss
 if("${current_host}" MATCHES "sampo")
@@ -52,6 +51,18 @@ else()
   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO " -Ofast -march=native")
   set(CMAKE_CXX_FLAGS_RELEASE " -DNDEBUG -Ofast -march=native -Winline")
 endif()
+
+#############################################################################################
+# OpenMP
+find_package(OpenMP)
+if(OPENMP_FOUND)
+  message(STATUS " OpenMP found")
+else()
+  message(STATUS "CMAKE cant find OpenMP (known issue for AppleClang on OSX)")
+  # maybe some hints are here: https://github.com/src-d/kmcuda/issues/6
+  set(OpenMP_CXX_FLAGS " ")
+endif()
+
 ############################################################################################
 # Thrust
 include(CheckCXXSourceCompiles)
@@ -84,7 +95,7 @@ if (NOT CUDA_FOUND)
   ")
 endif()
 
-set(CUDA_PROPAGATE_HOST_FLAGS OFF) # -std=c++11 will not work
+set(CUDA_PROPAGATE_HOST_FLAGS OFF) # -std=c++11 will not work, TODO: actually now it would
 
 if (CUDA_FOUND)
   # trying to figure out compute capability of the current 
@@ -96,17 +107,22 @@ if (CUDA_FOUND)
   endif()
   file(WRITE "${tmpdir}/test.cu" "
     #include <iostream>
-
+    
     int main() 
     {
-      cudaDeviceProp prop; 
-      cudaError_t err = cudaGetDeviceProperties(&prop, 0); 
-      if (err == cudaSuccess)
-        std::cout << prop.major << prop.minor;
-      else
+      int DeviceCount;
+      cudaGetDeviceCount(&DeviceCount);
+      for(int i = 0 ; i < DeviceCount; ++i)
       {
-        std::cerr << cudaGetErrorString(err);
-        std::cout << \"?\";
+        cudaDeviceProp prop; 
+        cudaError_t err = cudaGetDeviceProperties(&prop, i); 
+        if (err == cudaSuccess)
+          std::cout << prop.major << prop.minor << \" \" ;
+        else
+        {   
+          std::cerr << cudaGetErrorString(err);
+          std::cout << \"?\";
+        }   
       }
     }
   ")
@@ -118,16 +134,23 @@ if (CUDA_FOUND)
   if (NOT status EQUAL 0)
     message(FATAL_ERROR "${pfx}: test program failed")
   endif()
-  message(STATUS "CUDA capability: ${msg}")
-  if (msg STREQUAL "?")
-    set (msg "20")
-    message(STATUS "CUDA capability check failed, assuming a default of ${msg}")
-  endif()
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-code=sm_${msg} --std=c++11")
-  if (msg EQUAL "21") # see https://devtalk.nvidia.com/default/topic/606195/-solved-nvcc-fatal-unsupported-gpu-architecture-compute_21-/
-    set(msg "20")
-  endif()
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-architecture=compute_${msg}")
+  separate_arguments(msg)
+  list(REMOVE_DUPLICATES msg)
+  foreach(code ${msg})
+    message(STATUS "CUDA capability: ${code}")
+    if (code STREQUAL "?")
+      set (code "20")
+      message(STATUS "CUDA capability check failed, assuming a default of ${code}")
+    endif()
+    set(arch ${code})
+    if (arch EQUAL "21") # see https://devtalk.nvidia.com/default/topic/606195/-solved-nvcc-fatal-unsupported-gpu-architecture-compute_21-/
+      set(arch "20")
+    endif()
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --generate-code arch=compute_${arch},code=sm_${code}")
+  endforeach(code)
+
+  # enabling c++11
+  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
   unset(pfx)
   unset(tmpdir)
   unset(msg)
@@ -153,27 +176,6 @@ if (CUDA_FOUND)
     else()
       set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp")
     endif()
-  endif()
-
-  # Check if OpenMP supports custom reductions
-  # why is it C, not C++ compiler? NVCC uses C compiler for preprocessing? change ipp to cpp?
-  # TODO: it's needed only if there are many GPUs (multi_CUDA backend)
-  include(CheckCSourceCompiles)
-  set(CMAKE_REQUIRED_FLAGS " -fopenmp")
-  check_c_source_compiles("
-    #include <omp.h>
-    int add(int x, int y) {return x+y;}
-    int S = 0;
-    #pragma omp declare reduction(Add: int: omp_out=add(omp_out, omp_in)) initializer( omp_priv={0} )
-    int main ()
-    {
-      #pragma omp parallel reduction(Add: S) 
-      {}  
-    }
-  " OMP_CUSTOM_REDUCTION)
-
-  if (NOT OMP_CUSTOM_REDUCTION)
-    message(FATAL_ERROR "C compiler does not support OpenMP user-defined reductions.")
   endif()
 
   add_definitions(-DCUDA_FOUND)
@@ -255,8 +257,8 @@ unset(status)
 
 # generate a header file with git revision id
 if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
-  add_custom_target(git_revision.h
-   git log -1 "--format=format:#define GIT_REVISION \"%H\"%n" HEAD > include/libcloudph++/git_revision.h
+  add_custom_target(git_revision.h ALL
+   git log -1 "--format=format:#define LIBCLOUDPHXX_GIT_REVISION \"%H\"%n" HEAD > include/libcloudph++/git_revision.h
    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} VERBATIM
   )
 endif()

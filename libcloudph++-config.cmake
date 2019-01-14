@@ -1,34 +1,34 @@
-#<<<<<<< HEAD
-## TODO - tmp
-## get information about current host name
-#cmake_host_system_information(RESULT current_host QUERY HOSTNAME)
-#
-## needed for the OpenMP test to work in C++-only project
-## (see http://public.kitware.com/Bug/view.php?id=11910)
+# TODO (tmp): get information about current host name
+cmake_host_system_information(RESULT current_host QUERY HOSTNAME)
+
+# needed for the OpenMP test to work in C++-only project
+# (see http://public.kitware.com/Bug/view.php?id=11910)
 #cmake_minimum_required(VERSION 2.8.8) 
-#
-## the policies we care about:
-## - CMP0025 - make CMake distinguis between Apple and LLVM clang
-## - CMP0042 - make CMake use RPATHs on OSX
-## - CMP0060 - make CMake always keep absoult RPATHs, even if installing in implicit directory
+
+# the policies we care about:
+# - CMP0025 - make CMake distinguis between Apple and LLVM clang
+# - CMP0042 - make CMake use RPATHs on OSX
+# - CMP0060 - make CMake always keep absoult RPATHs, even if installing in implicit directory
 #if(CMAKE_VERSION VERSION_GREATER 2.9)
 #  cmake_policy(VERSION 3.0)
 #endif()
-#
+
 #set(CMAKE_MACOSX_RPATH ON) # explicit, since policy CMP0042 didn't work...
-#=======
-#>>>>>>> 46a6552877efe55bb8a3b2db0419a7bc30c00fa5
 
 ############################################################################################
 # the following variables will be set:
 set(libcloudphxx_FOUND False)
 set(libcloudphxx_INCLUDE_DIRS "")
 set(libcloudphxx_LIBRARIES "")
+#set(libcloudphxx_CXX_FLAGS_DEBUG "")
+#set(libcloudphxx_CXX_FLAGS_RELWITHDEBINFO "")
+#set(libcloudphxx_CXX_FLAGS_RELEASE "")
 
 ############################################################################################
 # libcloudphxx libs and headers 
 # also work for non-default install location (i.e. for make DESTDIR=<dir> install)
 set(libcloudphxx_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}/../../include/")
+
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
   set(CONFIG_SUFFIX "")
 elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
@@ -37,36 +37,24 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CONFIG_SUFFIX "_dbg")
 endif()
 
-#<<<<<<< HEAD
-############################################################################################
-# release with debug info mode compiler flags
-if("${current_host}" MATCHES "sampo")
-  set(libcloudphxx_CXX_FLAGS_RELWITHDEBINFO "${libcloudphxx_CXX_FLAGS_RELWITHDEBINFO} -std=c++11 -O3 ")
+if(APPLE)
+  set(libcloudphxx_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/../../lib/libcloudphxx_lgrngn${CONFIG_SUFFIX}.dylib")
 else()
-  set(libcloudphxx_CXX_FLAGS_RELWITHDEBINFO "${libcloudphxx_CXX_FLAGS_RELWITHDEBINFO} -std=c++11 -O3 -march=native")
+  set(libcloudphxx_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/../../lib/libcloudphxx_lgrngn${CONFIG_SUFFIX}.so")
 endif()
-
-############################################################################################
-# release mode compiler flags
-if(
-  CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
-  CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
-  CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"
-)
-  if("${current_host}" MATCHES "sampo")
-    set(libcloudphxx_CXX_FLAGS_RELEASE "${libcloudphxx_CXX_FLAGS_RELEASE} -std=c++11 -DNDEBUG -Ofast -Winline")
-  else()
-    set(libcloudphxx_CXX_FLAGS_RELEASE "${libcloudphxx_CXX_FLAGS_RELEASE} -std=c++11 -DNDEBUG -Ofast -march=native -Winline")
-  endif()
-endif()
-#=======
-set(libcloudphxx_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/../../lib/libcloudphxx_lgrngn${CONFIG_SUFFIX}.so")
 if(NOT EXISTS ${libcloudphxx_LIBRARIES})
   message(FATAL_ERROR "The libcloudph++ library for selected config not found at ${libcloudphxx_LIBRARIES}") 
 endif() 
 
-#>>>>>>> 46a6552877efe55bb8a3b2db0419a7bc30c00fa5
-#
+
+############################################################################################
+# release with debug info mode compiler flags
+#if("${current_host}" MATCHES "sampo")
+#  set(libcloudphxx_CXX_FLAGS_RELWITHDEBINFO "${libcloudphxx_CXX_FLAGS_RELWITHDEBINFO} -std=c++11 -O3 ")
+#else()
+#  set(libcloudphxx_CXX_FLAGS_RELWITHDEBINFO "${libcloudphxx_CXX_FLAGS_RELWITHDEBINFO} -std=c++11 -O3 -march=native")
+#endif()
+
 ############################################################################################
 # Boost libraries
 find_package(Boost)
