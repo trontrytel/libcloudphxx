@@ -1,7 +1,3 @@
-# TODO - tmp
-# get information about current host name
-cmake_host_system_information(RESULT current_host QUERY HOSTNAME)
-
 # needed for the OpenMP test to work in C++-only project
 # (see http://public.kitware.com/Bug/view.php?id=11910)
 cmake_minimum_required(VERSION 2.8.11) # for target_include_directories
@@ -42,15 +38,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # config-specific flags
 set(CMAKE_CXX_FLAGS_DEBUG " -g -DTHRUST_DEBUG") #TODO: -Og if compiler supports it?
-# march=native doesnt work on sampo because the assembler too old
-# Updating binutils should help:   https://stackoverflow.com/questions/33193970/error-suffix-or-operands-invalid-for-vbroadcastss
-if("${current_host}" MATCHES "sampo")
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO " -Ofast -march=corei7-avx")
-  set(CMAKE_CXX_FLAGS_RELEASE " -DNDEBUG -Ofast -march=corei7-avx -Winline")
-else()
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO " -Ofast -march=native")
-  set(CMAKE_CXX_FLAGS_RELEASE " -DNDEBUG -Ofast -march=native -Winline")
-endif()
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO " -Ofast -march=native")
+set(CMAKE_CXX_FLAGS_RELEASE " -DNDEBUG -Ofast -march=native -Winline")
 
 #############################################################################################
 # OpenMP
@@ -160,22 +149,14 @@ if (CUDA_FOUND)
   
   # Release with debug info mode cuda flags
   if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-    if("${current_host}" MATCHES "sampo")
-      set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -O3 -use_fast_math -Xcompiler=-Ofast,-fopenmp")
-    else()
-      set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-fopenmp")
-    endif()
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-fopenmp")
   # Debug mode cuda flags
   elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -DTHRUST_DEBUG -lineinfo
         \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler=-fopenmp,-g,-rdynamic")  
   # Release mode cuda flags
   else()
-    if("${current_host}" MATCHES "sampo")
-      set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math -Xcompiler=-Ofast,-DNDEBUG,-fopenmp")
-    else()
-      set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp")
-    endif()
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp")
   endif()
 
   add_definitions(-DCUDA_FOUND)

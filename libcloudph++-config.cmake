@@ -1,5 +1,5 @@
 # TODO (tmp): get information about current host name
-cmake_host_system_information(RESULT current_host QUERY HOSTNAME)
+#cmake_host_system_information(RESULT current_host QUERY HOSTNAME)
 
 # needed for the OpenMP test to work in C++-only project
 # (see http://public.kitware.com/Bug/view.php?id=11910)
